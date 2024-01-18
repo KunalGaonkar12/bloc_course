@@ -1,11 +1,15 @@
-import 'package:bloc/bloc.dart';
+
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bloctest_project/bloc/app_event.dart';
 import 'package:bloctest_project/bloc/app_state.dart';
 import 'dart:math' as math;
 
-import 'package:flutter/services.dart';
 
-typedef AppBlocRandomUrlPicket = String Function(Iterable<String> allUrls);
+
+typedef AppBlocRandomUrlPicker = String Function(Iterable<String> allUrls);
+
+typedef AppBlocUrlLoader= Future<Uint8List> Function(String url);
 
 extension RandomElement<T> on Iterable<T> {
   T getRandomElement() => elementAt(
@@ -14,26 +18,31 @@ extension RandomElement<T> on Iterable<T> {
 }
 
 class AppBloc extends Bloc<AppEvent, AppState> {
-  String _picRandomUrl(Iterable<String> allUrls) => allUrls.getRandomElement();
+  String _pickRandomUrl(Iterable<String> allUrls) => allUrls.getRandomElement();
+
+Future<Uint8List> _urlLoader(String url)=>NetworkAssetBundle(Uri.parse(url.toString())).load(url.toString()).then((byteData) =>  byteData.buffer.asUint8List());
 
   AppBloc({
-    AppBlocRandomUrlPicket? urlPicket,
     required Iterable<String> urls,
     Duration? waitBeforeLoading,
-  }) : super(const AppState.empty()) {
-    on<LoadNextUrlEvent>((event, emmit) async {
+    AppBlocRandomUrlPicker? urlPicket,
+    AppBlocUrlLoader? urlLoader,
+  }) : super(
+      const AppState.empty()
+  ) {
+    on<LoadNextUrlEvent>((event, emit) async {
       //Start loading
       emit(const AppState(isLoading: true, data: null, error: null));
 
-      final url = (urlPicket ?? _picRandomUrl(urls));
+      final  url = (urlPicket ?? _pickRandomUrl)(urls);
       try {
         if (waitBeforeLoading != null) {
           Future.delayed(waitBeforeLoading);
         }
 
-        final bundle = NetworkAssetBundle(Uri.parse(url.toString()));
-        final data = (await bundle.load(url.toString())).buffer.asUint8List();
-        emit(AppState(isLoading: false, data: data, error: null));
+
+        final  data =  await (urlLoader??_urlLoader)(url);
+        emit(AppState(isLoading: false, data: data , error: null));
       } catch (e) {
         emit(AppState(isLoading: false, data: null, error: e));
       }
