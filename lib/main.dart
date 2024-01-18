@@ -50,7 +50,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<AppBloc>(
-      create: (context) => AppBloc(loginApi: LoginApi(), noteApi: NoteApi()),
+      create: (context) => AppBloc(loginApi: LoginApi(), noteApi: NoteApi(),accecptedLoginHandle:const  LoginHandle.fooBar()),
       child: Scaffold(
         appBar: AppBar(
           title: const Text(homePage),centerTitle: true,

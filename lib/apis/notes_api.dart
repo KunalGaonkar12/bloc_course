@@ -10,6 +10,7 @@ abstract class NotesApiProtocol {
 
 @immutable
 class NoteApi implements NotesApiProtocol {
+
   @override
   Future<Iterable<Note>?> getNotes({required LoginHandle loginHandle}) =>
       Future.delayed(const Duration(seconds: 2),
